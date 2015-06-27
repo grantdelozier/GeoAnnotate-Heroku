@@ -54,6 +54,14 @@ app.get('/', function(request, response) {
   response.send(cool());
 });
 
+app.get('/login', function(request, response) {
+	if (req.session.username && req.session.password != null) {
+		console.log("Already logged in " + req.session.username)
+		//response.redirect('/payer-annotate');
+	}
+	response.sendfile('./annotate/login-page.html');
+});
+
 app.get('/payer-annotate', function(request, response) {
 	response.sendfile('./annotate/payer-annotate.html');
 });
@@ -84,23 +92,9 @@ app.post('/annotate/user-login', function(req, response) {
 	/*if (req.body.user && req.body.password){
 
 	}*/
-	//console.log(req.body.username)
-	//console.log(req.body.password)
 	return;
 });
 
-/*app.get('/payer-annotate', function(request, response) {
-	fs.readFile('./annotate/payer-annotate.hmtl', function(err, html) {
-		if (err){
-			throw err;
-		}
-		http.createServer(function(request, response) {
-			response.writeHead(200, {"Content-Type": "text/html"});
-			response.write(html);
-			response.end();
-		}).listen(8000);
-	})
-});*/
 
 app.listen(app.get('port'), function() {
   console.log('Node app is running on port', app.get('port'));
