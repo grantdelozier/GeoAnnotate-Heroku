@@ -25,7 +25,8 @@
     "pg": "4.x",
     "bcrypt": "0.8.x",
     "body-parser": "1.12.x",
-    "cookie-session": "1.1.x"
+    "cookie-session": "1.1.x",
+    "nodemailer": "1.4.x"
   },
   "license": "Apache"
 }

@@ -28,25 +28,16 @@
 </head>
     <body>
         <div class="center_log">
-            <p id="logtext">You are currently not logged in.</p>
+            <p id="logtext">Submit an email and password to create an account.</p>
         </div>
         <div style="width:50%; overflow: hidden; float: left;">
          <!--<h1 id="title">Toponym Annotation</h1>-->
-		<form method="post" action="/annotate/user-login">
-			Username: <input type="text" id="username" name="user" /><br>
+		<form method="post" action="/annotate/create-user">
+			User Email: <input type="text" id="username" name="user" /><br>
 			Password: <input type="password" id="password" name="password" /><br>
-			<button type="submit">Login</button> or <button type="button" onclick="getCreatePage()">Create Account</button>
-		</form>
-
-        <form method="get" action="/annotate/entity-annotate.html">
-            <button type="button" method="get" >Go to Named Entity Annotation Page</button>
-        </form>
-        <form method="get" action="/annotate/toponym-annotate.html">
-            <button type="button" method="get" >Go to Toponym Annotation Page</button>
-        </form>         
-        <form method="get" action="/annotate/docgeo-annotate.html">
-            <button type="button" method="get" >Go to Document Geo Annotation Page</button>
-        </form>  		
+            Repeat Password: <input type="password" id="repeat_password" name="repeat_password" /><br>
+			<button type="submit">Create</button>
+		</form>	
 
         </div>
 
