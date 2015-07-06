@@ -5,10 +5,24 @@
     <script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
     <script>
         function getCreatePage(){
-            var xmlHttp = new XMLHttpRequest();
-            xmlHttp.open("GET", "/create-user", false );
-            xmlHttp.send( null );
+            //var xmlHttp = new XMLHttpRequest();
+            //xmlHttp.open("GET", "/create-user", false );
+            //xmlHttp.send( null );
+            //console.log(xmlHttp.responseText);
+            //window.location = xmlHttp.responseText;
+
+            window.location = "/create-user"
+
+
+            /*xmlHttp.onreadystatechange = function() {
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+                    window.location = xmlHttp.responseText;
+                }
+            }*/
         }
+
+
+
     </script>
     <style>
 
@@ -35,7 +49,7 @@
 		<form method="post" action="/annotate/user-login">
 			Username: <input type="text" id="username" name="user" /><br>
 			Password: <input type="password" id="password" name="password" /><br>
-			<button type="submit">Login</button> or <button type="button" onclick="getCreatePage()">Create Account</button>
+			<button type="submit">Login</button> or <button type="button" onclick="getCreatePage()">Create New Account</button>
 		</form>
 
         <form method="get" action="/annotate/entity-annotate.html">

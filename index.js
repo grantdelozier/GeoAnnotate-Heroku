@@ -68,11 +68,14 @@ app.get('/payer-annotate', function(request, response) {
 });
 
 app.get('/create-user', function(request, response) {
-	response.redirect('./annotate/create-user.html');
+	//response.redirect('./annotate/create-user.html');
+	response.sendfile('./annotate/create-user.html');
 });
 
-app.post('./annotate/create-user', function(req, response) {
-	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
+app.post('/create-user', function(req, http_response) {
+	console.log(process.env.DATABASE_URL);
+	//console.log(req.body.user)
+	pg.connect(process.env.DATABASE_URL+"?ssl=true", function(err, client, done) {
 		//var hash = bcrypt.hashSync(req.body.password, salt);
 		client.query("SELECT usr from user_passwords WHERE user_passwords.usr = $1;", [req.body.user], function(err, result){
 			if (err) { 
@@ -88,14 +91,15 @@ app.post('./annotate/create-user', function(req, response) {
 			}
 			else{
 				//Create Account from username, password
-				if (req.body.user.length > 7){
+				if (req.body.user.length >= 7){
 					mail['to'] = req.body.user
 					smtpTransport.sendMail(mail, function(error, response){
 					    if(error){
 					        console.log(error);
-					        response.json({message:error});
+					        response.send(error);
 					    }else{
 					        console.log("Message sent: " + response.message);
+					        http_response.send("Confirmation Email has been sent to " + req.body.user);
 					    }
 
 					    smtpTransport.close();

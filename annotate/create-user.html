@@ -8,6 +8,8 @@
             var xmlHttp = new XMLHttpRequest();
             xmlHttp.open("GET", "/create-user", false );
             xmlHttp.send( null );
+            //console.log(xmlHttp.responseText);
+            //window.location.href = xmlHttp.responseText;
         }
     </script>
     <style>
@@ -32,7 +34,7 @@
         </div>
         <div style="width:50%; overflow: hidden; float: left;">
          <!--<h1 id="title">Toponym Annotation</h1>-->
-		<form method="post" action="/annotate/create-user">
+		<form method="post" action="/create-user">
 			User Email: <input type="text" id="username" name="user" /><br>
 			Password: <input type="password" id="password" name="password" /><br>
             Repeat Password: <input type="password" id="repeat_password" name="repeat_password" /><br>
