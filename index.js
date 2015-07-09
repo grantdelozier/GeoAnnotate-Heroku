@@ -72,19 +72,28 @@ app.get('/create-user', function(request, response) {
 	response.sendfile('./annotate/create-user.html');
 });
 
+app.get('/verify', function(request, response) {
+	console.log(request.query)
+	//code to change verification to 1
+	//
+	
+	response.send("Attempting to verify account of " + request.query.email);
+	//Need to redirect to login page after this
+});
+
 app.post('/create-user', function(req, http_response) {
 	console.log(process.env.DATABASE_URL);
 	//console.log(req.body.user)
 	pg.connect(process.env.DATABASE_URL+"?ssl=true", function(err, client, done) {
 		//var hash = bcrypt.hashSync(req.body.password, salt);
-		client.query("SELECT usr from user_passwords WHERE user_passwords.usr = $1;", [req.body.user], function(err, result){
+		client.query("SELECT usr from user_passwords WHERE user_passwords.usr = $1 and user_passwords.verif = '1';", [req.body.user], function(err, result){
 			if (err) { 
 				console.error(err);
-				response.send("Error:" + err);
+				http_response.send("Error:" + err);
 				 }
 			else if (result.rows.length > 0) {
 				console.log("Email Account is already registered " + result);
-				response.json({message:'Account Already Exists'})
+				http_response.json({message:'Account Already Exists'})
 				//req.session.username = req.body.user;
 				//req.session.password = hash;
 				//response.redirect('/payer-annotate')
@@ -93,27 +102,41 @@ app.post('/create-user', function(req, http_response) {
 				//Create Account from username, password
 				if (req.body.user.length >= 7){
 					mail['to'] = req.body.user
-					smtpTransport.sendMail(mail, function(error, response){
-					    if(error){
-					        console.log(error);
-					        response.send(error);
-					    }else{
-					        console.log("Message sent: " + response.message);
-					        http_response.send("Confirmation Email has been sent to " + req.body.user);
-					    }
+					var timestamp = bcrypt.hashSync(new Date().toISOString(), salt);
+					var hash = bcrypt.hashSync(req.body.password, salt);
+					var appurl = req.protocol + '://' + req.get('host');
+					mail['html'] = "<body><div>Thank you for creating an account on this GeoAnnotate App.</div><p></p><b> Complete your account creation by following this link: " + appurl + "/verify?email=" + req.body.user + "&hash=" + timestamp + "</b></body>"
+					
+					client.query("INSERT INTO user_passwords VALUES ($1, $2, '0', $3)", [req.body.user, hash, timestamp], function(err, result){
+			        	if (err) { 
+							console.error(err);
+							http_response.send("Error:" + err);
+						}else{
+							smtpTransport.sendMail(mail, function(error, response){
+							    if(error){
+							        console.log(error);
+							        response.send(error);
+							    }else{
+							        console.log("Message sent: " + response.message);
+							        var hash = bcrypt.hashSync(req.body.password, salt);
 
-					    smtpTransport.close();
+							        http_response.send("Confirmation Email has been sent to " + req.body.user);
+							    	
+							    }
+
+							    smtpTransport.close();
+							});
+						}
 					});
-				}
-				else{
+				}else{
 					console.log("Password is too short");
 					response.json({message:'The password is too short. Please make the password at least 7 characters'});
 
 				}
 			}
-		})
+		});
 	});
-})
+});
 
 app.post('/annotate/user-login', function(req, response) {
 	//console.log(req.body)
