@@ -94,9 +94,12 @@ app.get('/verify', function(request, response) {
 				console.error(err2);
 				response.send("Error:" + err2);
 			}
-			else {
+			else if (result.rowCount > 0) {
+				console.log(result);
 				var appurl = request.protocol + '://' + request.get('host') + "/login";
 				response.send("<p>Account " + request.query.email + " was verified</p><p></p><p> Return to " + '<a href="' + appurl + '">' + "the login page" + "</a></p>" );
+			} else {
+				response.send("<p>Problem Verifying the account</p><p></p><p>" + email + " " + tstamp + "</p>")
 			}
 		});
 		
@@ -129,7 +132,7 @@ app.post('/create-user', function(req, http_response) {
 					var timestamp = bcrypt.hashSync(new Date().toISOString(), salt);
 					var hash = bcrypt.hashSync(req.body.password, salt);
 					var appurl = req.protocol + '://' + req.get('host');
-					mail['html'] = "<body><div>Thank you for creating an account on this GeoAnnotate App.</div><p></p><b> Complete your account creation by following this link: " + appurl + "/verify?email=" + req.body.user + "&hash=" + timestamp + "</b></body>"
+					mail['html'] = "<body><div>Thank you for creating an account on this GeoAnnotate App.</div><p></p><p> Complete your account creation by following this link: " + appurl + "/verify?email=" + req.body.user + "&hash=" + timestamp + "&dummvar=14</p></body>"
 					
 					client.query("INSERT INTO user_passwords VALUES ($1, $2, '0', $3)", [req.body.user, hash, timestamp], function(err, result){
 			        	if (err) { 
@@ -171,9 +174,9 @@ app.post('/annotate/user-login', function(req, response) {
 	}
 	else{
 		pg.connect(process.env.DATABASE_URL+"?ssl=true", function(err, client, done) {
-			var hash = bcrypt.hashSync(req.body.password, salt);
-			console.log("Connection Successful");
-			client.query("SELECT * from user_passwords WHERE user_passwords.usr = $1 and user_passwords.pass = $2;", [req.body.user, hash], function(err, result){
+			var hash = bcrypt.hashSync(req.body.pass, salt);
+			//console.log("Connection Successful");
+			client.query("SELECT * from user_passwords WHERE user_passwords.usr = $1 and user_passwords.pass = $2 and user_passwords.verif = '1';", [req.body.user, hash], function(err, result){
 				if (err) { 
 					console.error(err); }
 				else if (result.rows.length > 0) {
