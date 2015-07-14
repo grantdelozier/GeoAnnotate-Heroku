@@ -1,6 +1,6 @@
 var express = require('express');
 var app = express();
-var cool = require('cool-ascii-faces');
+//var cool = require('cool-ascii-faces');
 var bcrypt = require('bcrypt');
 var http = require('http'), fs = require('fs');
 var https = require('https');
@@ -52,7 +52,7 @@ app.get('/db', function (request, response) {
 })
 
 app.get('/', function(request, response) {
-  response.send(cool());
+  response.send("Root");
 });
 
 app.get('/login', function(req, response) {
@@ -61,6 +61,15 @@ app.get('/login', function(req, response) {
 		//response.redirect('/payer-annotate');
 	}
 	response.sendfile('./annotate/login.html');
+});
+
+app.get('/login-status', function(request, response) {
+	if (request.session.username && request.session.password != null) {
+		console.log("Already logged in " + request.session.username)
+		response.send("Already logged in " + request.session.username)
+	} else{
+		response.send("You are currently not logged in.")
+	}
 });
 
 app.get('/payer-annotate', function(request, response) {
@@ -72,12 +81,27 @@ app.get('/create-user', function(request, response) {
 	response.sendfile('./annotate/create-user.html');
 });
 
+//Verify a user account given a verification get request
 app.get('/verify', function(request, response) {
-	console.log(request.query)
+	//console.log(request.query)
 	//code to change verification to 1
 	//
-	
-	response.send("Attempting to verify account of " + request.query.email);
+	var tstamp = request.query.hash 
+	var email = request.query.email
+	pg.connect(process.env.DATABASE_URL+"?ssl=true", function(err, client, done) {
+		client.query("UPDATE user_passwords SET verif = '1' WHERE user_passwords.usr = $1 AND user_passwords.timestamp = $2 ;", [email, tstamp], function(err2, result){
+			if (err) {
+				console.error(err2);
+				response.send("Error:" + err2);
+			}
+			else {
+				var appurl = request.protocol + '://' + request.get('host') + "/login";
+				response.send("<p>Account " + request.query.email + " was verified</p><p></p><p> Return to " + '<a href="' + appurl + '">' + "the login page" + "</a></p>" );
+			}
+		});
+		
+
+	});
 	//Need to redirect to login page after this
 });
 
@@ -146,8 +170,9 @@ app.post('/annotate/user-login', function(req, response) {
 		//response.redirect('/payer-annotate');
 	}
 	else{
-		pg.connect(process.env.DATABASE_URL, function(err, client, done) {
+		pg.connect(process.env.DATABASE_URL+"?ssl=true", function(err, client, done) {
 			var hash = bcrypt.hashSync(req.body.password, salt);
+			console.log("Connection Successful");
 			client.query("SELECT * from user_passwords WHERE user_passwords.usr = $1 and user_passwords.pass = $2;", [req.body.user, hash], function(err, result){
 				if (err) { 
 					console.error(err); }
@@ -155,7 +180,10 @@ app.post('/annotate/user-login', function(req, response) {
 					console.log(result);
 					req.session.username = req.body.user;
 					req.session.password = hash;
-					//response.redirect('/payer-annotate')
+					response.send('Successfully logged in as ' + req.session.username)
+				}
+				else {
+					response.send('Username or password is incorrect')
 				}
 			})
 		});

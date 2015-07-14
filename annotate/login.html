@@ -21,9 +21,35 @@
             }*/
         }
 
-
-
     </script>
+    <script>
+
+        function getLoginStatus(){
+            setTimeout(function() {
+                var xmlHttp = new XMLHttpRequest();
+                xmlHttp.open("GET", "/login-status", true );
+                xmlHttp.onreadystatechange = function () {
+                    if ( 4 != xmlHttp.readyState ) {
+                        return;
+                    }
+                    else {
+                        //console.log( xmlHttp.responseText );
+                        var logdiv = document.getElementById('logtext');
+                        logdiv.textContent = xmlHttp.responseText
+                        return xmlHttp.responseText
+                    }
+                };
+                xmlHttp.send( null );
+            }, 0);
+
+        };
+
+        $(document).ready(function(){
+            getLoginStatus();       
+
+        });
+    </script>
+
     <style>
 
         #logtext {
@@ -42,7 +68,7 @@
 </head>
     <body>
         <div class="center_log">
-            <p id="logtext">You are currently not logged in.</p>
+            <p id="logtext"> </p>
         </div>
         <div style="width:50%; overflow: hidden; float: left;">
          <!--<h1 id="title">Toponym Annotation</h1>-->
