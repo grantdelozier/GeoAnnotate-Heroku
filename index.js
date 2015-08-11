@@ -95,7 +95,7 @@ app.get('/verify', function(request, response) {
 				response.send("Error:" + err2);
 			}
 			else if (result.rowCount > 0) {
-				console.log(result);
+				//console.log(result);
 				var appurl = request.protocol + '://' + request.get('host') + "/login";
 				response.send("<p>Account " + request.query.email + " was verified</p><p></p><p> Return to " + '<a href="' + appurl + '">' + "the login page" + "</a></p>" );
 			} else {
@@ -165,6 +165,16 @@ app.post('/create-user', function(req, http_response) {
 	});
 });
 
+app.get('/annotate/entity-annotate', function(req, response) {
+	if (req.session.username && req.session.password != null) {
+		console.log(req.session.username + " navigating to entity-annotate page")
+		response.sendfile('./annotate/payer-annotate.html');
+	}
+	else{
+		response.send("You must log in before preceding to annotation page")
+	}
+});
+
 app.post('/annotate/user-login', function(req, response) {
 	//console.log(req.body)
 	//console.log(req.session)
@@ -176,19 +186,34 @@ app.post('/annotate/user-login', function(req, response) {
 		pg.connect(process.env.DATABASE_URL+"?ssl=true", function(err, client, done) {
 			var hash = bcrypt.hashSync(req.body.pass, salt);
 			//console.log("Connection Successful");
-			client.query("SELECT * from user_passwords WHERE user_passwords.usr = $1 and user_passwords.pass = $2 and user_passwords.verif = '1';", [req.body.user, hash], function(err, result){
-				if (err) { 
-					console.error(err); }
+			client.query("SELECT * from user_passwords where user_passwords.usr = $1;", [req.body.user], function(err, result){
+				if (err) {
+					console.error(err);
+					response.send('#Error# - Application Error consult logs')
+				}
 				else if (result.rows.length > 0) {
-					console.log(result);
-					req.session.username = req.body.user;
-					req.session.password = hash;
-					response.send('Successfully logged in as ' + req.session.username)
+					client.query("SELECT * from user_passwords WHERE user_passwords.usr = $1 and user_passwords.pass = $2 and user_passwords.verif = '1';", [req.body.user, hash], function(err, result){
+						if (err) { 
+							console.error(err);
+							response.send('#Error# - Application Error consult logs') 
+						}
+						else if (result.rows.length > 0) {
+							console.log(result);
+							req.session.username = req.body.user;
+							req.session.password = hash;
+							response.send('Successfully logged in as ' + req.session.username + ". Select an annotation page to navigate to below")
+						}
+						else {
+							console.log(req.body.user, hash);
+							response.send('Username or password is incorrect')
+						}
+					});
 				}
 				else {
-					response.send('Username or password is incorrect')
+					console.log(req.body.user, "user doesn't exist");
+					response.send('Username does not exist')
 				}
-			})
+			});
 		});
 		//check_pass = "SELECT * from user_passwords WHERE user_passwords.usr = $1;", [req.session.user]
 	}
