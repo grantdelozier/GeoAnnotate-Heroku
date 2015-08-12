@@ -86,6 +86,52 @@
         }
 
     </style>
+    <script>
+        function endSession2() {
+            setTimeout(function() {
+                    console.log("end session started 2")
+                    var xmlHttp = new XMLHttpRequest();
+                    xmlHttp.open("GET", '/logout', true );
+                    if ( 4 != xmlHttp.readyState ) {
+                            return;
+                    }
+                    else {
+                        console.log(xmlHttp.response);
+                        //console.log( xmlHttp.responseText );
+                        //var logdiv = document.getElementById('logtext');
+                        //logdiv.textContent = xmlHttp.responseText
+                        window.location = xmlHttp.response
+                        //return xmlHttp.responseText
+                    }
+                    //xmlHttp.responseType = "document";
+                    xmlHttp.send( null );
+            }, 0);
+        }
+
+        function endSession3(){
+            getHTML( '/logout', function (response) { 
+                document.documentElement.innerHTML = response.documentElement.innerHTML;
+            });
+        }
+
+        var getHTML = function ( url, callback ) {
+
+            var xhr = new XMLHttpRequest();
+
+            // Setup callback
+            xhr.onload = function() {
+                if ( callback && typeof( callback ) === 'function' ) {
+                    callback( this.responseXML );
+                }
+            }
+
+            // Get the HTML
+            xhr.open( 'GET', url );
+            xhr.responseType = 'document';
+            xhr.send();
+
+        }
+    </script>
     <script src="/annotate.js"></script>
     <script src="/article-annotate.js"></script>
     <script src="/payer-annotate.js"></script>
@@ -93,7 +139,7 @@
     <body onload="init()">
         <div class="center_log">
             <p id="logtext"> </p>
-            <button type="button" onclick="endSession()">Logout</button>
+            <button type="button" onclick="endSession3()">Logout</button>
         </div>
         <!-- The junk here is needed so that the text is vertically centered, per
              http://stackoverflow.com/questions/2939914/vertically-align-text-in-a-div

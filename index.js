@@ -31,7 +31,7 @@ function authenticate_password(user, password) {
 
 app.set('port', (process.env.PORT || 5000));
 app.use(express.static(__dirname + '/public'));
-app.use(session({keys:['annotator'], maxAge:7200000}));
+app.use(session({keys:['annotator'], maxAge:14400000}));
 app.use(bodyParser());
 
 var annotateDir = path.join(__dirname, 'annotate')
@@ -63,6 +63,12 @@ app.get('/login', function(req, response) {
 		console.log("Already logged in " + req.session.username)
 		//response.redirect('/payer-annotate');
 	}
+	response.sendFile(path.join(annotateDir, 'login.html'));
+});
+
+app.get('/logout', function(req, response) {
+	console.log("Logging out ", req.session.usernmae);
+	req.session = null;
 	response.sendFile(path.join(annotateDir, 'login.html'));
 });
 
@@ -176,7 +182,7 @@ app.get('/annotate/entity-annotate', function(req, response) {
 	}
 	else{
 		console.log("invalid credentials")
-		response.send("You must log in before preceding to annotation page")
+		response.send("<p>You are not logged in. You must log in before preceding.</p><p></p><p> Return to " + '<a href="' + appurl + '">' + "the login page" + "</a></p>" );
 	}
 });
 
@@ -189,7 +195,6 @@ app.post('/annotate/user-login', function(req, response) {
 	}
 	else{
 		pg.connect(process.env.DATABASE_URL+"?ssl=true", function(err, client, done) {
-			console.log('pass ', req.body.pass);
 			var hash = bcrypt.hashSync(req.body.pass, salt);
 			//console.log(hash)
 			//console.log("Connection Successful");
