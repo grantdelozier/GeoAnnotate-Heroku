@@ -7,6 +7,7 @@ var https = require('https');
 var bodyParser = require('body-parser');
 var session = require('cookie-session');
 var mailer = require("nodemailer");
+var path = require('path');
 
 var pg = require('pg');
 
@@ -29,9 +30,11 @@ function authenticate_password(user, password) {
 
 
 app.set('port', (process.env.PORT || 5000));
-app.use(express.static(__dirname + '/annotate'));
+app.use(express.static(__dirname + '/public'));
 app.use(session({keys:['annotator'], maxAge:7200000}));
 app.use(bodyParser());
+
+var annotateDir = path.join(__dirname, 'annotate')
 
 
 
@@ -60,7 +63,7 @@ app.get('/login', function(req, response) {
 		console.log("Already logged in " + req.session.username)
 		//response.redirect('/payer-annotate');
 	}
-	response.sendfile('./annotate/login.html');
+	response.sendFile(path.join(annotateDir, 'login.html'));
 });
 
 app.get('/login-status', function(request, response) {
@@ -73,12 +76,12 @@ app.get('/login-status', function(request, response) {
 });
 
 app.get('/payer-annotate', function(request, response) {
-	response.sendfile('./annotate/payer-annotate.html');
+	response.sendFile('./annotate/payer-annotate.html');
 });
 
 app.get('/create-user', function(request, response) {
 	//response.redirect('./annotate/create-user.html');
-	response.sendfile('./annotate/create-user.html');
+	response.sendFile('./annotate/create-user.html');
 });
 
 //Verify a user account given a verification get request
@@ -109,7 +112,7 @@ app.get('/verify', function(request, response) {
 });
 
 app.post('/create-user', function(req, http_response) {
-	console.log(process.env.DATABASE_URL);
+	//console.log(process.env.DATABASE_URL);
 	//console.log(req.body.user)
 	pg.connect(process.env.DATABASE_URL+"?ssl=true", function(err, client, done) {
 		//var hash = bcrypt.hashSync(req.body.password, salt);
@@ -166,11 +169,13 @@ app.post('/create-user', function(req, http_response) {
 });
 
 app.get('/annotate/entity-annotate', function(req, response) {
+	console.log(req.body);
 	if (req.session.username && req.session.password != null) {
 		console.log(req.session.username + " navigating to entity-annotate page")
-		response.sendfile('./annotate/payer-annotate.html');
+		response.sendFile(path.join(annotateDir, 'payer-annotate.html'));
 	}
 	else{
+		console.log("invalid credentials")
 		response.send("You must log in before preceding to annotation page")
 	}
 });
@@ -184,42 +189,39 @@ app.post('/annotate/user-login', function(req, response) {
 	}
 	else{
 		pg.connect(process.env.DATABASE_URL+"?ssl=true", function(err, client, done) {
+			console.log('pass ', req.body.pass);
 			var hash = bcrypt.hashSync(req.body.pass, salt);
+			//console.log(hash)
 			//console.log("Connection Successful");
-			client.query("SELECT * from user_passwords where user_passwords.usr = $1;", [req.body.user], function(err, result){
+			client.query("SELECT * from user_passwords where user_passwords.usr = $1 and user_passwords.verif = '1';", [req.body.user], function(err, result){
 				if (err) {
 					console.error(err);
 					response.send('#Error# - Application Error consult logs')
 				}
 				else if (result.rows.length > 0) {
-					client.query("SELECT * from user_passwords WHERE user_passwords.usr = $1 and user_passwords.pass = $2 and user_passwords.verif = '1';", [req.body.user, hash], function(err, result){
-						if (err) { 
+					//console.log(result.rows);
+					bcrypt.compare(req.body.pass, result.rows[0].pass, function(err, res) {
+						if (err){
 							console.error(err);
-							response.send('#Error# - Application Error consult logs') 
 						}
-						else if (result.rows.length > 0) {
-							console.log(result);
-							req.session.username = req.body.user;
+						else if (res == true) {
+    						req.session.username = req.body.user;
 							req.session.password = hash;
 							response.send('Successfully logged in as ' + req.session.username + ". Select an annotation page to navigate to below")
-						}
-						else {
-							console.log(req.body.user, hash);
-							response.send('Username or password is incorrect')
-						}
+    					}
+    					else {
+    						response.send('Password is incorrect')
+    					}
 					});
 				}
 				else {
 					console.log(req.body.user, "user doesn't exist");
-					response.send('Username does not exist')
+					response.send('Username does not exist or account not verified')
 				}
 			});
 		});
 		//check_pass = "SELECT * from user_passwords WHERE user_passwords.usr = $1;", [req.session.user]
 	}
-	/*if (req.body.user && req.body.password){
-
-	}*/
 	return;
 });
 

@@ -3,9 +3,9 @@
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.min.css">
     <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
     <script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
-    <script src="rangy/lib/rangy-core.js"></script>
-    <script src="rangy/lib/rangy-textrange.js"></script>
-    <script src="rangy/lib/rangy-classapplier.js"></script>
+    <script src="/rangy/lib/rangy-core.js"></script>
+    <script src="/rangy/lib/rangy-textrange.js"></script>
+    <script src="/rangy/lib/rangy-classapplier.js"></script>
     <script src="//cdn.datatables.net/1.10.5/js/jquery.dataTables.min.js"></script>
     <style src="//cdn.datatables.net/1.10.5/css/jquery.dataTables.css"></style>
     <style>
@@ -73,20 +73,27 @@
 		    background-color: aqua !important; /* Add !important to make sure override datables base styles */
 		 }
 
+        #logtext {
+            border-bottom: 3px solid  #000;
+            padding: 10px;
+            font-size: 125%;
+        }
+
+        .center_log {
+            margin: auto;
+            width: 100%;
+            
+        }
+
     </style>
-    <script src="annotate.js"></script>
-    <script src="article-annotate.js"></script>
-    <script src="payer-annotate.js"></script>
+    <script src="/annotate.js"></script>
+    <script src="/article-annotate.js"></script>
+    <script src="/payer-annotate.js"></script>
 </head>
     <body onload="init()">
-        <div style="width:25%; overflow: hidden; float: left;">
-         <!--<h1 id="title">Toponym Annotation</h1>-->
-		<form method="post" action="/annotate/user-login">
-			Username: <input type="text" id="username" name="user" /><br>
-			Password: <input type="password" id="password" name="password" /><br>
-			<button type="submit">Login</button>
-		</form>
-		
+        <div class="center_log">
+            <p id="logtext"> </p>
+            <button type="button" onclick="endSession()">Logout</button>
         </div>
         <!-- The junk here is needed so that the text is vertically centered, per
              http://stackoverflow.com/questions/2939914/vertically-align-text-in-a-div
@@ -98,8 +105,6 @@
         </div>
         <div id="xouter3">
             <div id="xleftcol3">
-                <button type="button" onclick="getFeatures()">Get Features</button>
-                <button type="button" onclick="zoomFeatures()">Zoom to Features</button>
                 <div id="recentpayers">
                     <table id="annotated_payers">
                         <thead>
@@ -119,7 +124,7 @@
                 <table id="vol_table" style="width:100%">
                     <thead>
                         <tr>
-                            <th>Vol</th>
+                            <th>ID</th>
                             <th>Description</th>
                         </tr>
                     </thead>
@@ -131,7 +136,7 @@
                 <div id="xinner3">
                      <button type="button" onclick="addPayer()">Add Payer(a)</button>      
                      <button type="button" onclick="removeAnnotation()">Remove Annotation (r)</button>
-                     <button type="button" onclick="applyGeoAll()">Apply Geometry to All</button>
+                     <button type="button" onclick="applyGeoAll()">Quick Regex Search</button>
                      <button type="button" onclick="saveAnnotations()">Save Annotations</button>
                     <div id="col2text" contenteditable="" style="padding:5px">
                      </div>
