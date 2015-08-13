@@ -217,12 +217,32 @@ function httpGet(theUrl, callback)
     }    
 }
 
-function loadVolumeText(vol, spansObject) {
+function loadVolumeText(vol) {
     removeAnnotationsUponLoad()
-    logMessage("Loading annotations ...")
+    //logMessage("Loading annotations ...")
     selvol = vol
+
+    setTimeout(function() {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.open("POST", '/annotate/gettext', true);
+        xmlHttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        var params = 'vol=' + selvol ;
+        xmlHttp.onreadystatechange = function () {
+            if ( 4 != xmlHttp.readyState ) {
+                return;
+            }
+            else {
+                //console.log( xmlHttp.responseText );
+                $("#col2text").html(JSON.parse(xmlHttp.responseText)['content'])
+                return;
+            }
+        };
+        xmlHttp.send( params );
+    }, 0);
+
+
     //var query = new Parse.Query(VolTextObject)
-    query.equalTo("vol", vol)
+    /*query.equalTo("vol", vol)
     query.find().then(function(results) {
         //console.log("Successfully " + results[0].get["text"))
         httpGet(results[0].get("text").url(), function(text){
@@ -242,24 +262,39 @@ function loadVolumeText(vol, spansObject) {
         })
         //debugger;
         //return Parse.Cloud.httpRequest({ url: results[0].get("text").url() })
-    })
+    })*/
 }
 
 function getVolTableRows(table){
-    //var query = new Parse.Query(VolTextObject)
-    /*query.exists("vol")
-    query.limit(1000)
-    query.find().then(function(results) {
-        //console.log("Successfully " + results[0].get["text"))
-        //$("#col2text").html(results[0].get("text"))
-        for (var i = 0; i < results.length; i++) {
-            var vol = results[i].get("vol")
-            var descrip = results[i].get("description")
-            table.row.add([vol, descrip]).draw();
-        }
-    })*/
-    //Replace parse query with http based postgres query
-    table.row.add(["Default Vol", "Descrip"]).draw();
+
+    setTimeout(function() {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.open("GET", '/annotate/getvoltablerows', true);
+        xmlHttp.onreadystatechange = function () {
+            if ( 4 != xmlHttp.readyState ) {
+                return;
+            }
+            else {
+                //console.log( xmlHttp.responseText );
+                var logdiv = document.getElementById('logtext');
+                if (xmlHttp.responseText.indexOf("Error:") > 0) {
+                    window.alert("There was an error loading the voltable contents. Check logs")
+                }
+                else{
+                    var json_response = JSON.parse(xmlHttp.responseText);
+                    for (var i = 0; i < json_response.length; i++) {
+                        var id = json_response[i]['id']
+                        var title = json_response[i]['title']
+                        table.row.add([id, title]).draw();
+                    }
+                }
+                return xmlHttp.responseText
+            }
+        };
+        xmlHttp.send( null );
+    }, 0);
+
+    //table.row.add(["Default Vol", "Descrip"]).draw();
 }
 
 function checkVol(row, tableSelector, spansObject) {
@@ -278,43 +313,40 @@ function checkVol(row, tableSelector, spansObject) {
     }
 
     var table = $(tableSelector).DataTable()
- 
-    if (annotUser != "Default") {
-        var ret = table.$(row)
-        if (ret.length > 0) {
-            var newvol = ret.find('td:first').text()
-            if (annotationChanges > 0) {
-                $('<div>Do you want to save the existing annotations?</div>').dialog({
-                    resizable: false,
-                    modal: true,
-                    buttons: {
-                        "Yes": function() {
-                            saveAnnotations(function() {
-                                loadVolumeText(newvol, spansObject)
-                                selectNewRow()
-                            })
-                            closeDialog(this)
-                        },
-                        "No": function() {
+
+    var ret = table.$(row)
+    if (ret.length > 0) {
+        var newvol = ret.find('td:first').text()
+        if (annotationChanges > 0) {
+            $('<div>Do you want to save the existing annotations?</div>').dialog({
+                resizable: false,
+                modal: true,
+                buttons: {
+                    "Yes": function() {
+                        saveAnnotations(function() {
                             loadVolumeText(newvol, spansObject)
                             selectNewRow()
-                            closeDialog(this)
-                        },
-                        "Cancel": function() {
-                            logMessage("Canceled")
-                            closeDialog(this)
-                        }
+                        })
+                        closeDialog(this)
+                    },
+                    "No": function() {
+                        loadVolumeText(newvol, spansObject)
+                        selectNewRow()
+                        closeDialog(this)
+                    },
+                    "Cancel": function() {
+                        logMessage("Canceled")
+                        closeDialog(this)
                     }
-                })
-            } else {
-                loadVolumeText(newvol, spansObject)
-                selectNewRow()
-            }
+                }
+            })
+        } else {
+            loadVolumeText(newvol, spansObject)
+            selectNewRow()
         }
-    } else {
-        logMessage("Please select a non-default Annotator name prior to loading a volume")
     }
-}
+} 
+
 
 // Set 4-space indentation for vi
 // vi:sw=4

@@ -117,6 +117,30 @@ app.get('/verify', function(request, response) {
 	//Need to redirect to login page after this
 });
 
+app.get('/annotate/getvoltablerows', function(request, response){
+	if (request.session.username && request.session.password != null) {
+		pg.connect(process.env.DATABASE_URL+"?ssl=true", function(err, client, done) {
+			if (err) {
+				console.error(err)
+				response.send("Error:" + err)
+			}
+			else{
+				client.query("SELECT id, title from article_texts;", function(err2, result){
+					if (err2){
+						response.send("Error:"+ err2)
+					}
+					else{
+						response.send(result.rows)
+					}
+				});
+			}
+		});
+	}
+	else{
+		response.send("Error: "+ "You are currently not logged in. Cannot get Table Rows")
+	}
+})
+
 app.post('/create-user', function(req, http_response) {
 	//console.log(process.env.DATABASE_URL);
 	//console.log(req.body.user)
@@ -182,7 +206,33 @@ app.get('/annotate/entity-annotate', function(req, response) {
 	}
 	else{
 		console.log("invalid credentials")
-		response.send("<p>You are not logged in. You must log in before preceding.</p><p></p><p> Return to " + '<a href="' + appurl + '">' + "the login page" + "</a></p>" );
+		response.send("<p>You are not logged in. You must log in before preceding.</p><p></p><p> Return to " + '<a href="' + '/login' + '">' + "the login page" + "</a></p>" );
+	}
+});
+
+app.post('/annotate/gettext', function(req, response) {
+	if (req.session.username && req.session.password != null) {
+		pg.connect(process.env.DATABASE_URL+"?ssl=true", function(err, client, done) {
+			if (err){
+				console.error(err)
+			}
+			else{
+				var id = req.body.vol
+				client.query("SELECT content from article_texts where id = $1;", [req.body.vol], function(err2, result){
+					if (err2){
+						console.error(err2)
+					}
+					else{
+						response.send(result.rows[0]);
+					}
+				});
+			}
+		});
+	}
+	else{
+		console.log("Not Logged in");
+		response.send("Not logged in");
+
 	}
 });
 

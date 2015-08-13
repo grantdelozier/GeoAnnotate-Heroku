@@ -20,10 +20,12 @@ var lastSelectedNode
 
 $(document).ready(function() {
     // This handles selection in dataTable
-    var table = $('#vol_table').DataTable();
+    var table = $('#vol_table').DataTable({
+        "pageLength": 20
+        });
 
     $('#vol_table tbody').on('click', 'tr', function() {
-        checkVol(this, '#vol_table', SpansObject)
+        checkVol(this, '#vol_table')
     } );
  
     // FIXME: What does this do?
@@ -207,7 +209,6 @@ function nameChangeAnnotator() {
 }
 
 function removeAnnotationsUponLoad() {
-    destroyMapFeatures()
     // We don't actually need to remove the individual spans because we
     // just overwrite the whole HTML.
     annotationChanges = 0
@@ -263,6 +264,8 @@ function commonInit() {
     //VolTextObject = Parse.Object.extend("VolumeText");
 
     rangy.init();
+
+
 
     setTimeout(function() {
         var xmlHttp = new XMLHttpRequest();
