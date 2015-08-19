@@ -195,6 +195,18 @@ function savefailure(operation) {
     }
 }
 
+// Add an annotation with an attached map feature
+function addFeature(clazz, applier, conflict_clazzes) {
+    if (conflict_clazzes==='undefined'){
+        conflict_clazzes = [clazz]
+    }
+    if (addAnnotation(clazz, applier, conflict_clazzes)) {
+        var nodes = getSelectionNodes()
+        if (nodes.length > 0)
+            lastSelectedNode = nodes[0]
+    }
+}
+
 function httpGet(theUrl, callback)
 {
     var xmlhttp=new XMLHttpRequest();
@@ -221,6 +233,7 @@ function loadVolumeText(vol) {
     removeAnnotationsUponLoad()
     //logMessage("Loading annotations ...")
     selvol = vol
+    console.log("selvol", selvol)
 
     setTimeout(function() {
         var xmlHttp = new XMLHttpRequest();
@@ -234,11 +247,30 @@ function loadVolumeText(vol) {
             else {
                 //console.log( xmlHttp.responseText );
                 $("#col2text").html(JSON.parse(xmlHttp.responseText)['content'])
+                var xmlHttp2 = new XMLHttpRequest();
+                xmlHttp2.open("POST", '/annotate/getannot', false);
+                xmlHttp2.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+                var params = 'vol=' + selvol ;
+                xmlHttp2.onreadystatechange = function () {
+                    if ( 4 != xmlHttp.readyState ) {
+                        return;
+                    }
+                    else {
+                        //console.log( xmlHttp2.responseText );
+                        var results = JSON.parse(xmlHttp2.responseText)['content']
+                        console.log(results)
+                        loadVolumeAnnotations(results);
+                        return;
+                    }
+                };
+                xmlHttp2.send( params );
+                
                 return;
             }
         };
         xmlHttp.send( params );
     }, 0);
+
 
 
     //var query = new Parse.Query(VolTextObject)
@@ -270,6 +302,7 @@ function getVolTableRows(table){
     setTimeout(function() {
         var xmlHttp = new XMLHttpRequest();
         xmlHttp.open("GET", '/annotate/getvoltablerows', true);
+
         xmlHttp.onreadystatechange = function () {
             if ( 4 != xmlHttp.readyState ) {
                 return;
@@ -291,7 +324,7 @@ function getVolTableRows(table){
                 return xmlHttp.responseText
             }
         };
-        xmlHttp.send( null );
+        xmlHttp.send( null);
     }, 0);
 
     //table.row.add(["Default Vol", "Descrip"]).draw();
@@ -341,6 +374,7 @@ function checkVol(row, tableSelector, spansObject) {
                 }
             })
         } else {
+            console.log("Loading volume");
             loadVolumeText(newvol, spansObject)
             selectNewRow()
         }

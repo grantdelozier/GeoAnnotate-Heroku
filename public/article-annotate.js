@@ -65,7 +65,7 @@ $(document).ready(function() {
             if (getSelectionNodes().length == 0){
                 if (lastSelectedNode){
                     removeSelectCSS(lastSelectedNode);
-                    destroyMapFeatures();
+                    //destroyMapFeatures();
                     lastSelectedNode = null;
                 }
             }
@@ -113,13 +113,42 @@ function saveVolumeAnnotations(successcb) {
     // Convert to an array of serialized annotations in the form "CLASS$START$END".
     var geometries = 0
     var serialAnnotations = annotations.map(function(ann) {
-        var jsonmapfeats = getStoredMapFeatures(ann.node) || ""
-        if (jsonmapfeats)
-            geometries++
+        var jsonmapfeats = ""
+        //var jsonmapfeats = getStoredMapFeatures(ann.node) || ""
+        //if (jsonmapfeats)
+        //    geometries++
         return ann.node.className + "$" + ann.start + "$" + ann.end + "$" + jsonmapfeats
     })
     // Join to a single serialized string
     var serialString = serialAnnotations.join("|")
+
+    console.log("saving", selvol)
+    
+    setTimeout(function() {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.open("POST", '/annotate/entity-annotate', true);
+        xmlHttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        var params = 'vol=' + selvol + '&' + 'annot=' + serialString ;
+        xmlHttp.onreadystatechange = function () {
+            if ( 4 != xmlHttp.readyState ) {
+                return;
+            }
+            else {
+                console.log( xmlHttp.responseText );
+                var logdiv = document.getElementById('logtext');
+                if (xmlHttp.responseText.indexOf("Error:") > 0) {
+                    window.alert("There was an error attempting the save. Check logs")
+                }
+                else{
+                    logdiv.textContent = xmlHttp.responseText
+                }
+                return xmlHttp.responseText
+            }
+        };
+        xmlHttp.send( params );
+    }, 0);
+
+    /*
     var base64 = utf8ToB64(serialString);
     var parse_file = new Parse.File((annotUser + "-" + selvol +".txt"), { base64: base64 });
     // Save to Parse. First look for an existing entry for the user and volume.
@@ -143,64 +172,59 @@ function saveVolumeAnnotations(successcb) {
         if (successcb)
             successcb()
     }),
-        savefailure("saving new or updating existing entry"))
+        savefailure("saving new or updating existing entry"))*/
 }
 
 // Called from HTML. Save annotations. If saved successfully, reset list of
 // article changes.
 function saveAnnotations(successcb) {
-    if (annotUser != "Default") {
-        saveVolumeAnnotations(successcb)
-    } else {
-        logMessage("Please select a non-default Annotator Name prior prior to saving")
-    }
+    saveVolumeAnnotations(successcb)
+
 }
 
 // Load volume annotations
-function loadVolumeAnnotations(results) {
+function loadVolumeAnnotations(spansText) {
     var textDivNode = getTextNode()
     textDivNode.normalize()
     var textNode = textDivNode.childNodes[0]
     logMessage("Loading Annotations...")
-    httpGet(results[0].get("spans").url(), function(spansText) {
-        var spansSerialized = spansText.split("|")
-        var spans = spansSerialized.map(function(span) {
-            var splitSpan = span.split("$")
-            var className = splitSpan[0]
-            var start = splitSpan[1]
-            var end = splitSpan[2]
-            var jsonmapfeats = splitSpan[3]
-            return {start: start, end: end, className: className, jsonmapfeats: jsonmapfeats}
-        })
-        spans.sort(function(a, b) { return b.start - a.start })
-        var geometries = 0
-        for (var i = 0; i < spans.length; i++) {
-            var span = spans[i]
-            if (span.start > textNode.length || span.end > textNode.length) {
-                console.log("Skipped span [" + span.start + "," +
-                    span.end + "] because > " + textNode.length)
-            } else {
-                var range = rangy.createRange()
-                range.setStartAndEnd(textNode, span.start, span.end)
-                annotationClassesAndAppliers.forEach(function(ca) {
-                    if (span.className == ca.clazz) {
-                        if (span.jsonmapfeats && ca.geoapplier) {
-                            ca.geoapplier.applyToRange(range)
-                            geometries++
-                        } else {
-                            ca.applier.applyToRange(range)
-                        }
-                    }
-                })
-                getRangeNodes(range, annotationClasses).forEach(function(node) {
-                    if (span.jsonmapfeats)
-                        setStoredMapFeatures(node, span.jsonmapfeats, false)
-                })
-            }
-        }
-        logMessage("Loaded " + spans.length + " annotations (" +
-                  geometries + " geometries)")
+    var spansSerialized = spansText.split("|")
+    var spans = spansSerialized.map(function(span) {
+        var splitSpan = span.split("$")
+        var className = splitSpan[0]
+        var start = splitSpan[1]
+        var end = splitSpan[2]
+        var jsonmapfeats = splitSpan[3]
+        return {start: start, end: end, className: className, jsonmapfeats: jsonmapfeats}
     })
+    spans.sort(function(a, b) { return b.start - a.start })
+    var geometries = 0
+    for (var i = 0; i < spans.length; i++) {
+        var span = spans[i]
+        if (span.start > textNode.length || span.end > textNode.length) {
+            console.log("Skipped span [" + span.start + "," +
+                span.end + "] because > " + textNode.length)
+        } else {
+            var range = rangy.createRange()
+            range.setStartAndEnd(textNode, span.start, span.end)
+            annotationClassesAndAppliers.forEach(function(ca) {
+                if (span.className == ca.clazz) {
+                    if (span.jsonmapfeats && ca.geoapplier) {
+                        ca.geoapplier.applyToRange(range)
+                        geometries++
+                    } else {
+                        ca.applier.applyToRange(range)
+                    }
+                }
+            })
+            getRangeNodes(range, annotationClasses).forEach(function(node) {
+                if (span.jsonmapfeats)
+                    setStoredMapFeatures(node, span.jsonmapfeats, false)
+            })
+        }
+    }
+    logMessage("Loaded " + spans.length + " annotations ")
+
 }
 
 function nameChangeAnnotator() {

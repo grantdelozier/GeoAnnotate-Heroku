@@ -110,11 +110,85 @@ app.get('/verify', function(request, response) {
 			} else {
 				response.send("<p>Problem Verifying the account</p><p></p><p>" + email + " " + tstamp + "</p>")
 			}
+			done();
 		});
 		
 
 	});
 	//Need to redirect to login page after this
+});
+
+app.post('/annotate/getannot', function(request, response){
+	if (request.session.username && request.session.password != null) {
+		pg.connect(process.env.DATABASE_URL+"?ssl=true", function(err, client, done) {
+			if (err) {
+				console.error(err)
+				response.send("Error:" + err)
+			}
+			else{
+				client.query("SELECT content from article_annotations where volid = $1;", [request.body.vol], function(err2, result){
+					if (err2){
+						response.send("Error:"+ err2)
+					}
+					else{
+						response.send(result.rows[0])
+					}
+				});
+			}
+			done();
+		});
+	}
+	else{
+		response.send("Error:" + " user is not logged in ")
+	}
+});
+
+app.post('/annotate/entity-annotate', function(request, response) {
+	if (request.session.username && request.session.password != null) {
+		pg.connect(process.env.DATABASE_URL+"?ssl=true", function(err, client, done) {
+			if (err) {
+				console.error(err)
+				response.send("Error:" + err)
+			}
+			else{
+				console.log(request.body.vol);
+				console.log(request.body.annot);
+				client.query("SELECT volid from article_annotations where volid = $1;", [request.body.vol], function(err2, result){
+					if (err2){
+						response.send("Error:"+ err2)
+					}
+					else{
+						if (result.rows.length > 0) {
+							client.query("UPDATE article_annotations SET content = $1, annot_user = $2 WHERE volid = $3;", [request.body.annot, request.session.username, request.body.vol], function(err3, result){
+								if (err3){
+									response.send("Error:"+ err3)
+								}
+								else{
+									console.log("Saved Entry by ", request.session.username);
+									response.send("Saving Successful")
+								}
+							});
+						}
+						else{
+							client.query("INSERT INTO article_annotations (volid, content, annot_user) VALUES($1, $2, $3);;", [request.body.vol, request.body.annot, request.session.username], function(err3, result){
+								if (err3){
+									response.send("Error:"+ err3)
+								}
+								else{
+									console.log("Saved Entry by ", request.session.username);
+									response.send("Saving Successful")
+								}
+							});
+						}
+					}
+				});
+			}
+			done();
+		});
+	}
+	else{
+		response.send("Error:" + " user is not logged in ")
+	}
 });
 
 app.get('/annotate/getvoltablerows', function(request, response){
@@ -134,6 +208,7 @@ app.get('/annotate/getvoltablerows', function(request, response){
 					}
 				});
 			}
+			done();
 		});
 	}
 	else{
@@ -218,6 +293,7 @@ app.post('/annotate/gettext', function(req, response) {
 			}
 			else{
 				var id = req.body.vol
+				console.log(id)
 				client.query("SELECT content from article_texts where id = $1;", [req.body.vol], function(err2, result){
 					if (err2){
 						console.error(err2)
@@ -274,6 +350,7 @@ app.post('/annotate/user-login', function(req, response) {
 					response.send('Username does not exist or account not verified')
 				}
 			});
+			done();
 		});
 		//check_pass = "SELECT * from user_passwords WHERE user_passwords.usr = $1;", [req.session.user]
 	}
