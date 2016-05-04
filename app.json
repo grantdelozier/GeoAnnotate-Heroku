@@ -1,0 +1,6 @@
+{
+  "name": "GeoAnnotate-Heroku",
+  "description": "An application for annotating texts with geographic information",
+  "repository": "https://github.com/grantdelozier/GeoAnnotate-Heroku",
+  "keywords": ["node", "express", "GeoAnnotate", "annotation"]
+}

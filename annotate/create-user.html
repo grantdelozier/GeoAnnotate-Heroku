@@ -1,0 +1,47 @@
+<html><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.min.css">
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+    <script>
+        function getCreatePage(){
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("GET", "/create-user", false );
+            xmlHttp.send( null );
+            //console.log(xmlHttp.responseText);
+            //window.location.href = xmlHttp.responseText;
+        }
+    </script>
+    <style>
+
+        #logtext {
+            border-bottom: 3px solid  #000;
+            padding: 10px;
+            font-size: 125%;
+        }
+
+        .center_log {
+            margin: auto;
+            width: 100%;
+            
+        }
+
+    </style>
+</head>
+    <body>
+        <div class="center_log">
+            <p id="logtext">Submit an email and password to create an account.</p>
+        </div>
+        <div style="width:50%; overflow: hidden; float: left;">
+         <!--<h1 id="title">Toponym Annotation</h1>-->
+		<form method="post" action="/create-user">
+			User Email: <input type="text" id="username" name="user" /><br>
+			Password: <input type="password" id="password" name="password" /><br>
+            Repeat Password: <input type="password" id="repeat_password" name="repeat_password" /><br>
+			<button type="submit">Create</button>
+		</form>	
+
+        </div>
+
+    </body>
+</html>

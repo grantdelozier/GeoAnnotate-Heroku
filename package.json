@@ -1,0 +1,31 @@
+{
+  "name": "GeoAnnotate-Heroku",
+  "version": "0.1.4",
+  "description": "An application for annotating texts with geographic information",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": "0.12.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/grantdelozier/GeoAnnotate-Heroku"
+  },
+  "keywords": [
+    "node",
+    "heroku",
+    "express",
+    "PayerAnnotate"
+  ],
+  "dependencies": {
+    "express": "~4.9.x",
+    "pg": "4.x",
+    "bcrypt": "0.8.x",
+    "body-parser": "1.12.x",
+    "cookie-session": "1.1.x",
+    "nodemailer": "0.7.1",
+    "html-escape": "1.0.2"
+  }
+}

@@ -1,0 +1,127 @@
+<html><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.min.css">
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+    <script>
+
+        function getLoginPage(){
+
+            window.location = "/login"
+        }
+
+        function logMessage_react(message){
+            if (message.index("already logged in") > 0){
+                
+            }
+        }
+
+        function getNERPage(){
+            setTimeout(function() {
+                var xmlHttp = new XMLHttpRequest();
+                xmlHttp.responseType = "document";
+                xmlHttp.open("GET", '/annotate/entity-annotate', true );
+                if ( 4 != xmlHttp.readyState ) {
+                        return;
+                }
+                else {
+                    //console.log( xmlHttp.responseText );
+                    //var logdiv = document.getElementById('logtext');
+                    //logdiv.textContent = xmlHttp.responseText
+                    window.location.replace(xmlHttp.response);
+                    //return xmlHttp.responseText
+                }
+                xmlHttp.send( null );
+            }, 0);
+            
+        }
+
+        function getLoginStatus(){
+            setTimeout(function() {
+                var xmlHttp = new XMLHttpRequest();
+                xmlHttp.open("GET", "/login-status", true );
+                xmlHttp.onreadystatechange = function () {
+                    if ( 4 != xmlHttp.readyState ) {
+                        return;
+                    }
+                    else {
+                        //console.log( xmlHttp.responseText );
+                        var logdiv = document.getElementById('logtext');
+                        logdiv.textContent = xmlHttp.responseText
+                        return xmlHttp.responseText
+                    }
+                };
+                xmlHttp.send( null );
+            }, 0);
+
+        };
+
+        $(document).ready(function(){
+            getLoginStatus();       
+
+        });
+    </script>
+
+    <style>
+
+        #logtext {
+            border-bottom: 3px solid  #000;
+            padding: 10px;
+            font-size: 125%;
+        }
+        #bannertext {
+            border-bottom: 3px solid  #000;
+            padding: 10px;
+
+        }
+        #geotext {
+            color: #009900;
+            font-size: 150%;
+            margin-right:-5px;
+        }
+
+        .top_log {
+            margin: auto;
+            width: 100%;
+            
+        }
+
+        .top_banner {
+            margin: auto;
+            width: 100%;
+            
+        }
+
+    </style>
+</head>
+    <body onload="getLoginStatus()">
+        <div class="top_banner">
+            <p id="bannertext" >
+                <div id="geotext" style="display: inline;">Geo</div>
+                <div style="display: inline; font-size: 150%; padding-left: -10px;" id="annotatetext">Annotate</div>
+            </p>
+        </div>
+        <div class="top_log">
+            <p id="logtext"> </p>
+        </div>
+        <div class="center_log" style="width:50%; overflow: hidden;">
+            <!--<h1 id="title">Toponym Annotation</h1>-->
+    		<form id="loginform">
+                 <button type="button" onclick="getLoginPage()">Back to Login Page</button>
+    		</form>
+        </div>
+
+        <div class="bottom_log" style="width:100%; overflow: hidden; text-align: center;">
+            <form style="display: block; padding-top: 10px;">
+                <button type="button" onclick="getNERPage()" >Go to Named Entity Annotation Page</button>
+            </form>
+            <form style="display: block;" action="/annotate/toponym-annotate.html">
+                <button type="button" method="get" >Go to Toponym Annotation Page</button>
+            </form>         
+            <form method="get" style="display: block;" action="/annotate/docgeo-annotate.html">
+                <button type="button" method="get" >Go to Document Geo Annotation Page</button>
+            </form>  		
+        </div>
+
+    </body>
+</html>
